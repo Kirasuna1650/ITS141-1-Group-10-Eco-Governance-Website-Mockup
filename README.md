@@ -12,3 +12,7 @@ The group decided on these features to showcase on the website:
 - F1
 - F2
 - F3
+
+## Local setup
+
+Included in this repo is a docker compose file meant for setup with a custom domain name.
