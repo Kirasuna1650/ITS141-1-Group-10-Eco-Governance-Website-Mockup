@@ -1,9 +1,8 @@
 services:
   web:
-    image: python:3.12-alpine
-    command: sh -c "python -m http.server 80 --directory /site"
+    image: httpd:alpine
     ports:
       - "8085:80"
     volumes:
-      - ./:/site:ro
+      - ./:/usr/local/apache2/htdocs/:ro
     restart: unless-stopped
