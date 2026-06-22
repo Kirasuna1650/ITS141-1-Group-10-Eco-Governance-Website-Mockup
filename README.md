@@ -9,6 +9,6 @@ before moving to a deployable model for a better presentation experience.
 
 The group decided on these features to showcase on the website:
 
-1.)
-2.)
-3.)
+- F1
+- F2
+- F3
