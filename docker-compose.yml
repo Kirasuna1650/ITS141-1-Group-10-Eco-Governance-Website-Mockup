@@ -1,0 +1,9 @@
+services:
+  web:
+    image: python:3.12-alpine
+    command: sh -c "python -m http.server 80 --directory /site"
+    ports:
+      - "8085:80"
+    volumes:
+      - ./:/site:ro
+    restart: unless-stopped
