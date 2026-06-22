@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco-Governance | Metro Manila Carbon Emission & AQI Dashboard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="light-theme">
+        <!-- Main Dashboard View -->
+        <main class="main-content">
+            
+            <!-- Header bar -->
+            <header class="main-header">
+                <div class="header-title-section">
+                    <h1 class="header-title">Governance Analytics & Monitoring</h1>
+                    <p class="header-subtitle">Metro Manila Carbon Emission & Air Quality Index Monitoring System</p>
+                </div>
+                
+                    <!-- Search Bar -->
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" placeholder="Search City/LGU, e.g. Quezon City..." id="search-input">
+                    </div>
+                    
+                                       
+                    <!-- Live Connection Indicator -->
+                    <div class="status-indicator">
+                        <span class="pulse-dot"></span>
+                        <span class="status-label">Live Data Stream</span>
+                    </div>
+                     <!-- Header theme toggle (left of Live Data Stream) -->
+                <div class="theme-toggle-container header-toggle" title="Toggle Light/Dark Mode">
+                    <button class="theme-btn" id="dark-theme-toggle" title="Dark mode">
+                        <i data-lucide="moon"></i>
+                    </button>
+                    <button class="theme-btn active" id="light-theme-toggle" title="Light mode">
+                        <i data-lucide="sun"></i>
+                    </button>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="btn-sdg-info">
+                        <i data-lucide="info"></i>
+                        <span>SDG Goals</span>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Dashboard Content Scrollable Area -->
+            <div class="dashboard-grid-container">
+                
+                <!-- Quick Stats Row -->
+                <section class="stats-row">
+                    <!-- Stat Card 1 -->
+                    <div class="stat-card" id="card-aqi">
+                        <div class="stat-icon-wrapper bg-soft-orange text-orange">
+                            <i data-lucide="wind"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Metro Manila Avg AQI</span>
+                            <div class="stat-value-container">
+                                <h3 class="stat-value" id="val-avg-aqi">84</h3>
+                                <span class="stat-badge badge-warning" id="lbl-avg-aqi">Moderate</span>
+                            </div>
+                            <span class="stat-change text-muted"><span class="text-emerald font-semibold">&#8595; 2.1%</span> vs yesterday</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Stat Card 2 -->
+                    <div class="stat-card" id="card-co2">
+                        <div class="stat-icon-wrapper bg-soft-emerald text-emerald">
+                            <i data-lucide="gauge"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Average Carbon (CO2)</span>
+                            <div class="stat-value-container">
+                                <h3 class="stat-value" id="val-avg-co2">412 <span class="unit">ppm</span></h3>
+                                <span class="stat-badge badge-success">Stable</span>
+                            </div>
+                            <span class="stat-change text-muted"><span class="text-rose font-semibold">&#8593; 0.4%</span> annual global rate</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Stat Card 3 -->
+                    <div class="stat-card" id="card-active-stations">
+                        <div class="stat-icon-wrapper bg-soft-cyan text-cyan">
+                            <i data-lucide="radio"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Online Stations</span>
+                            <div class="stat-value-container">
+                                <h3 class="stat-value" id="val-stations">14 <span class="total">/ 15</span></h3>
+                                <span class="stat-badge badge-info">93% Active</span>
+                            </div>
+                            <span class="stat-change text-muted">1 under maintenance (Malabon)</span>
+                        </div>
+                    </div>
+
+                    <!-- Stat Card 4 - Compliance Action Plan -->
+                    <div class="stat-card" id="card-compliance">
+                        <div class="stat-icon-wrapper bg-soft-purple text-purple">
+                            <i data-lucide="award"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">LGU Clean Air Compliance</span>
+                            <div class="stat-value-container">
+                                <h3 class="stat-value" id="val-compliance">82%</h3>
+                                <span class="stat-badge badge-purple">High Target</span>
+                            </div>
+                            <span class="stat-change text-muted">Climate Change Act of 2009 standards</span>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Map & Details Grid -->
+                <div class="main-dashboard-grid">
+                    
+                    <!-- Interactive Map Container -->
+                    <div class="grid-card map-card">
+                        <div class="card-header">
+                            <div class="card-header-left">
+                                <i data-lucide="map-pin" class="text-emerald"></i>
+                                <div>
+                                    <h2 class="card-title">Real-Time Heatmap Visualization</h2>
+                                    <p class="card-subtitle">Showing localized carbon emissions & AQI metrics across Metro Manila</p>
+                                </div>
+                            </div>
+                            <!-- Map controls -->
+                            <div class="map-controls">
+                                <select id="map-metric-select" class="custom-select">
+                                    <option value="aqi">Air Quality Index (AQI)</option>
+                                    <option value="co2">Carbon Dioxide (CO2)</option>
+                                    <option value="pm25">Particulate Matter (PM2.5)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="map-wrapper">
+                            <div id="map"></div>
+                            
+                            <!-- Custom Map Legend -->
+                            <div class="map-legend">
+                                <div class="legend-title">Air Quality Scale</div>
+                                <div class="legend-scale">
+                                    <div class="scale-item"><span class="color-dot bg-good"></span> <span class="label">Good (0-50)</span></div>
+                                    <div class="scale-item"><span class="color-dot bg-mod"></span> <span class="label">Moderate (51-100)</span></div>
+                                    <div class="scale-item"><span class="color-dot bg-unhealthy-sens"></span> <span class="label">Unhealthy-S (101-150)</span></div>
+                                    <div class="scale-item"><span class="color-dot bg-unhealthy"></span> <span class="label">Unhealthy (151-200)</span></div>
+                                    <div class="scale-item"><span class="color-dot bg-haz"></span> <span class="label">Hazardous (201+)</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Side Contextual Info Panel / Dynamic focus details -->
+                    <div class="grid-card details-card" id="lgu-focus-panel">
+                        <div class="card-header border-none">
+                            <div>
+                                <h2 class="card-title" id="focus-lgu-name">Manila City</h2>
+                                <p class="card-subtitle">Active LGU Focus Monitoring</p>
+                            </div>
+                            <span class="stat-badge badge-warning" id="focus-lgu-status">Moderate</span>
+                        </div>
+                        
+                        <div class="lgu-focus-body">
+                            <!-- Visual Ring Meter -->
+                            <div class="gauge-section">
+                                <div class="circular-progress-container">
+                                    <svg viewBox="0 0 100 100" class="circular-chart text-orange">
+                                        <path class="circle-bg" d="M18 2.0845 a 36 36 0 0 1 0 72 a 36 36 0 0 1 0 -72" />
+                                        <path class="circle" id="gauge-circle" stroke-dasharray="64, 100" d="M18 2.0845 a 36 36 0 0 1 0 72 a 36 36 0 0 1 0 -72" />
+                                        <text x="18" y="20.35" class="percentage" id="gauge-value">92</text>
+                                        <text x="18" y="27" class="percentage-unit">AQI</text>
+                                    </svg>
+                                </div>
+                                <div class="gauge-details">
+                                    <div class="metric-mini">
+                                        <span class="label">CO2 Level</span>
+                                        <span class="value" id="focus-co2">425 ppm</span>
+                                    </div>
+                                    <div class="metric-mini">
+                                        <span class="label">PM2.5 Concentration</span>
+                                        <span class="value" id="focus-pm25">31.2 µg/m³</span>
+                                    </div>
+                                    <div class="metric-mini">
+                                        <span class="label">Temp / Humidity</span>
+                                        <span class="value">31°C / 78%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="divider">
+                            
+                            <!-- Health Recommendations -->
+                            <div class="health-alert-box">
+                                <div class="alert-header">
+                                    <i data-lucide="shield-alert" class="text-orange"></i>
+                                    <span class="alert-title">Health Guidelines & Advisory</span>
+                                </div>
+                                <p class="alert-desc" id="focus-health-desc">
+                                    Active air quality presents a moderate health risk. Sensitive individuals (asthmatics, respiratory patients) should avoid prolonged outdoor physical activities. General public can engage in regular activities.
+                                </p>
+                            </div>
+                            
+                            <!-- Compliance metrics checklist -->
+                            <div class="compliance-metrics-panel">
+                                <h3 class="panel-subtitle">Compliance Checklist (Climate Change Act)</h3>
+                                <ul class="compliance-checklist">
+                                    <li class="checked">
+                                        <i data-lucide="check-circle-2"></i>
+                                        <span>Local Climate Action Plan Active</span>
+                                    </li>
+                                    <li class="checked">
+                                        <i data-lucide="check-circle-2"></i>
+                                        <span>Carbon Monitoring Station online</span>
+                                    </li>
+                                    <li class="unchecked" id="compliance-item-vehicle">
+                                        <i data-lucide="alert-circle"></i>
+                                        <span>Roadway Emission Index under limit</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Analytics & Compliance List Row -->
+                <div class="bottom-row-grid">
+                    
+                    <!-- Chart card -->
+                    <div class="grid-card chart-card">
+                        <div class="card-header">
+                            <div class="card-header-left">
+                                <i data-lucide="line-chart" class="text-emerald"></i>
+                                <div>
+                                    <h2 class="card-title">Historical Trends Analytics</h2>
+                                    <p class="card-subtitle">Diurnal cycle of carbon emissions and AQI values (Last 24 Hours)</p>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-actions">
+                                <button class="btn btn-tab active" id="btn-chart-24h">24 Hours</button>
+                                <button class="btn btn-tab" id="btn-chart-7d">7 Days</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="trendsChart"></canvas>
+                        </div>
+                    </div>
+    <!-- Simulation Controller Panel Overlay -->
+    <div class="simulation-controller-panel">
+        <button class="simulation-toggle-btn" id="simulation-panel-toggle" title="Toggle Live Simulation Panel">
+            <i data-lucide="sliders"></i>
+            <span>Interactive Simulator</span>
+        </button>
+        <div class="simulation-content">
+            <h3 class="sim-title">UI State Simulator</h3>
+            <p class="sim-subtitle">Simulate real-time Metro Manila emission events to test dashboard dynamic responsiveness:</p>
+            
+            <div class="sim-button-grid">
+                <button class="sim-btn" id="sim-rush-hour" data-event="rush-hour">
+                    <i data-lucide="car"></i>
+                    <span>Rush Hour Traffic Surge</span>
+                </button>
+                <button class="sim-btn" id="sim-industrial" data-event="industrial">
+                    <i data-lucide="factory"></i>
+                    <span>Industrial Emission Spike</span>
+                </button>
+                <button class="sim-btn" id="sim-rain" data-event="rain">
+                    <i data-lucide="cloud-rain"></i>
+                    <span>Heavy Rain (Washout)</span>
+                </button>
+                <button class="sim-btn active" id="sim-normal" data-event="normal">
+                    <i data-lucide="refresh-cw"></i>
+                    <span>Standard Live Baseline</span>
+                </button>
+            </div>
+            
+            <div class="sim-status-box">
+                <div class="label">Simulated Scenario:</div>
+                <div class="value" id="sim-active-scenario">Standard Live Baseline</div>
+                <p class="description" id="sim-active-desc">Displays standard localized monitoring values gathered across Manila and surrounding cities.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SDG Goals Info Modal -->
+    <div class="modal-backdrop" id="sdg-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-container">
+                    <i data-lucide="globe" class="text-emerald"></i>
+                    <h2>Sustainable Development Goals (SDGs) Integration</h2>
+                </div>
+                <button class="close-btn" id="close-sdg-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <p class="modal-intro">The <strong>Eco-Governance</strong> platform bridges interface design with clean data tracking, directly serving key UN Sustainable Development Goals in the Metro Manila area:</p>
+                
+                <div class="sdg-cards-grid">
+                    <!-- SDG 3 -->
+                    <div class="sdg-detail-card border-sdg3">
+                        <div class="sdg-badge-header color-sdg3">
+                            <span class="sdg-num">SDG 3</span>
+                            <span class="sdg-name">Good Health & Well-being</span>
+                        </div>
+                        <p class="sdg-desc">Provides real-time, simplified air health indicators (AQI and PM2.5 levels) directly translating complex emission data into practical public health advisory guidelines for vulnerable demographic groups.</p>
+                    </div>
+                    
+                    <!-- SDG 11 -->
+                    <div class="sdg-detail-card border-sdg11">
+                        <div class="sdg-badge-header color-sdg11">
+                            <span class="sdg-num">SDG 11</span>
+                            <span class="sdg-name">Sustainable Cities</span>
+                        </div>
+                        <p class="sdg-desc">Equips Local Government Units (LGUs) with clear carbon-density spatial analytics to support localized traffic restructuring, urban tree-canopy planning, and environmental safety regulations.</p>
+                    </div>
+                    
+                    <!-- SDG 13 -->
+                    <div class="sdg-detail-card border-sdg13">
+                        <div class="sdg-badge-header color-sdg13">
+                            <span class="sdg-num">SDG 13</span>
+                            <span class="sdg-name">Climate Action</span>
+                        </div>
+                        <p class="sdg-desc">Offers a continuous reporting framework aligning with the Climate Change Act of 2009, highlighting high-carbon clusters to formulate data-driven greenhouse gas reduction policies.</p>
+                    </div>
+                    
+                    <!-- SDG 15 -->
+                    <div class="sdg-detail-card border-sdg15">
+                        <div class="sdg-badge-header color-sdg15">
+                            <span class="sdg-num">SDG 15</span>
+                            <span class="sdg-name">Life on Land</span>
+                        </div>
+                        <p class="sdg-desc">Tracks environmental degradation index to assess air pollutant deposition trends and support long-term regional ecological biodiversity preservation actions.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btn-modal-close-action">Acknowledge Framework</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Custom scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
